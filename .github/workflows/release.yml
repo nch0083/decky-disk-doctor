@@ -61,5 +61,4 @@ jobs:
           gh release create "$TAG" "out/DeckyDiskDoctor-v${VERSION}.zip" \
             --target "$GITHUB_SHA" \
             --title "Decky Disk Doctor $TAG" \
-            --generate-notes \
-            --prerelease
+            --generate-notes
