@@ -4,6 +4,8 @@ on:
     branches: [main]
     paths:
       - 'DeckyDiskDoctor/**'
+      - 'plugin.json'
+      - 'package.json'
       - '.github/workflows/release.yml'
   workflow_dispatch:
 permissions:
@@ -42,7 +44,8 @@ jobs:
           VERSION: ${{ steps.version.outputs.version }}
         run: |
           python3 -m py_compile DeckyDiskDoctor/main.py
-          node --check DeckyDiskDoctor/dist/index.js
+          cp DeckyDiskDoctor/dist/index.js /tmp/decky-disk-doctor-check.mjs
+          node --check /tmp/decky-disk-doctor-check.mjs
           python3 -m json.tool DeckyDiskDoctor/plugin.json > /dev/null
           rm -rf out
           mkdir -p out/DeckyDiskDoctor/dist
