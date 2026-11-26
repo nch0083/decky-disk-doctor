@@ -1,1 +1,14 @@
-{"name":"decky-disk-doctor","version":"0.1.1","private":true,"description":"SteamOS crash dump and pending error report inspection and selective cleanup"}
+{
+  "name": "decky-disk-doctor",
+  "version": "0.1.2",
+  "private": true,
+  "description": "SteamOS crash dump and pending error report inspection and selective cleanup",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nch0083/decky-disk-doctor.git"
+  },
+  "homepage": "https://github.com/nch0083/decky-disk-doctor",
+  "bugs": {
+    "url": "https://github.com/nch0083/decky-disk-doctor/issues"
+  }
+}
