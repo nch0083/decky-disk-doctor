@@ -4,6 +4,9 @@ on:
     branches: [main]
     paths:
       - 'DeckyDiskDoctor/**'
+      - 'src/**'
+      - 'rollup.config.js'
+      - 'tsconfig.json'
       - 'plugin.json'
       - 'package.json'
       - '.github/workflows/release.yml'
@@ -15,12 +18,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.9
+          run_install: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
       - name: Read and verify version
         id: version
         shell: bash
         run: |
-          VERSION="$(node -p "require('./DeckyDiskDoctor/package.json').version")"
-          PLUGIN_VERSION="$(node -p "require('./DeckyDiskDoctor/plugin.json').version")"
+          VERSION="$(node -p "require('./package.json').version")"
+          PLUGIN_VERSION="$(node -p "require('./plugin.json').version")"
           if [ "$VERSION" != "$PLUGIN_VERSION" ]; then
             echo "::error::package.json and plugin.json versions do not match"
             exit 1
@@ -38,19 +48,24 @@ jobs:
           else
             echo "exists=false" >> "$GITHUB_OUTPUT"
           fi
+      - name: Install and build frontend
+        if: steps.existing.outputs.exists != 'true'
+        run: |
+          pnpm install --no-frozen-lockfile
+          pnpm run build
       - name: Validate and package
         if: steps.existing.outputs.exists != 'true'
         env:
           VERSION: ${{ steps.version.outputs.version }}
         run: |
           python3 -m py_compile DeckyDiskDoctor/main.py
-          cp DeckyDiskDoctor/dist/index.js /tmp/decky-disk-doctor-check.mjs
-          node --check /tmp/decky-disk-doctor-check.mjs
-          python3 -m json.tool DeckyDiskDoctor/plugin.json > /dev/null
+          test -s dist/index.js
+          node --check dist/index.js
+          python3 -m json.tool plugin.json > /dev/null
           rm -rf out
           mkdir -p out/DeckyDiskDoctor/dist
-          cp DeckyDiskDoctor/main.py DeckyDiskDoctor/plugin.json DeckyDiskDoctor/package.json out/DeckyDiskDoctor/
-          cp DeckyDiskDoctor/dist/index.js out/DeckyDiskDoctor/dist/index.js
+          cp DeckyDiskDoctor/main.py plugin.json package.json out/DeckyDiskDoctor/
+          cp dist/index.js out/DeckyDiskDoctor/dist/index.js
           cp README.md out/DeckyDiskDoctor/
           (cd out && zip -qr "DeckyDiskDoctor-v${VERSION}.zip" DeckyDiskDoctor)
           unzip -t "out/DeckyDiskDoctor-v${VERSION}.zip"
