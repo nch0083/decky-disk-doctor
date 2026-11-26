@@ -1,6 +1,8 @@
-# Decky Disk Doctor v0.1.0
+# Decky Disk Doctor
 
 SteamOS `/var` disk diagnostics and selective crash-report cleanup for Decky Loader.
+
+Current release version: **v0.1.3** (see [GitHub Releases](https://github.com/nch0083/decky-disk-doctor/releases) for the latest published build).
 
 ## Features
 - Inspect actual mounts for `/`, `/var`, `/var/log`, `/home`
@@ -26,14 +28,14 @@ You can use [Decky Direct Updater](https://github.com/nukeador/deckyup) to disco
 3. Open Direct Updater and find `nch0083/decky-disk-doctor`. Verify the repository owner before selecting the source.
 4. When a compatible GitHub release becomes available, select Update and confirm in Decky.
 
-Direct Updater checks periodically, but does not silently install updates. Its normal update detection targets stable releases; test prereleases may need to be selected manually.
+Direct Updater checks periodically, but does not silently install updates. Its normal update detection targets stable releases; prereleases may need to be selected manually.
 
 ### Release packaging contract
 
 - GitHub release tag: `vX.Y.Z`
-- Attached ZIP: `Decky-Disk-Doctor-vX.Y.Z.zip`
+- Attached ZIP: `DeckyDiskDoctor-vX.Y.Z.zip`
 - ZIP root: `DeckyDiskDoctor/`, including `plugin.json`, `main.py`, `dist/index.js`
 - Keep `package.json` version synchronized with the release.
-- Publish a stable release only after a real Steam Deck install and smoke test. Until then, use prereleases.
+- GitHub Actions publishes a stable release when the version changes. Verify on a physical Steam Deck before trusting a new build.
 
 **Security:** This plugin requests elevated permissions for disk diagnostics. Verify the GitHub repository and review changes before installing an update. The plugin itself does not download or install executable updates automatically.
