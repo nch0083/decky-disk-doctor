@@ -57,20 +57,22 @@ jobs:
           cp DeckyDiskDoctor/main.py plugin.json package.json out/DeckyDiskDoctor/
           cp dist/index.js out/DeckyDiskDoctor/dist/index.js
           cp README.md out/DeckyDiskDoctor/
-          (cd out && zip -qr "DeckyDiskDoctor-v${VERSION}.zip" DeckyDiskDoctor)
-          unzip -t "out/DeckyDiskDoctor-v${VERSION}.zip"
+          (cd out && zip -qr "Decky-Disk-Doctor-v${VERSION}.zip" DeckyDiskDoctor)
+          unzip -t "out/Decky-Disk-Doctor-v${VERSION}.zip"
       - name: Publish or replace release ZIP
         env:
           GH_TOKEN: ${{ github.token }}
           VERSION: ${{ steps.version.outputs.version }}
           TAG: ${{ steps.version.outputs.tag }}
         run: |
-          ZIP="out/DeckyDiskDoctor-v${VERSION}.zip"
+          ZIP="out/Decky-Disk-Doctor-v${VERSION}.zip"
           if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release edit "$TAG" --prerelease
             gh release upload "$TAG" "$ZIP" --clobber
           else
             gh release create "$TAG" "$ZIP" \
               --target "$GITHUB_SHA" \
               --title "Decky Disk Doctor $TAG" \
-              --generate-notes
+              --generate-notes \
+              --prerelease
           fi
