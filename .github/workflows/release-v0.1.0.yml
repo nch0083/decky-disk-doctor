@@ -1,0 +1,35 @@
+name: Package and publish v0.1.0 prerelease
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/release-v0.1.0.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate and package plugin
+        run: |
+          python3 -m py_compile DeckyDiskDoctor/main.py
+          python3 -m json.tool DeckyDiskDoctor/plugin.json > /dev/null
+          python3 -m json.tool DeckyDiskDoctor/package.json > /dev/null
+          test -s DeckyDiskDoctor/dist/index.js
+          cd .
+          zip -r Decky-Disk-Doctor-v0.1.0.zip DeckyDiskDoctor -x '*/__pycache__/*' '*.pyc'
+          unzip -t Decky-Disk-Doctor-v0.1.0.zip
+      - name: Publish pre-release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create v0.1.0 Decky-Disk-Doctor-v0.1.0.zip \
+            --title "Decky Disk Doctor v0.1.0" \
+            --notes "Initial experimental build. Steam Deck installation and functionality have not been device-tested. Manual scan and explicitly selected cleanup only. Use at your own risk." \
+            --prerelease \
+            --target "${GITHUB_SHA}"
