@@ -1,0 +1,65 @@
+name: Build and Release
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'DeckyDiskDoctor/**'
+      - '.github/workflows/release.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Read and verify version
+        id: version
+        shell: bash
+        run: |
+          VERSION="$(node -p "require('./DeckyDiskDoctor/package.json').version")"
+          PLUGIN_VERSION="$(node -p "require('./DeckyDiskDoctor/plugin.json').version")"
+          if [ "$VERSION" != "$PLUGIN_VERSION" ]; then
+            echo "::error::package.json and plugin.json versions do not match"
+            exit 1
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
+      - name: Check existing release
+        id: existing
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Validate and package
+        if: steps.existing.outputs.exists != 'true'
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          python3 -m py_compile DeckyDiskDoctor/main.py
+          node --check DeckyDiskDoctor/dist/index.js
+          python3 -m json.tool DeckyDiskDoctor/plugin.json > /dev/null
+          rm -rf out
+          mkdir -p out/DeckyDiskDoctor/dist
+          cp DeckyDiskDoctor/main.py DeckyDiskDoctor/plugin.json DeckyDiskDoctor/package.json out/DeckyDiskDoctor/
+          cp DeckyDiskDoctor/dist/index.js out/DeckyDiskDoctor/dist/index.js
+          cp README.md out/DeckyDiskDoctor/
+          (cd out && zip -qr "DeckyDiskDoctor-v${VERSION}.zip" DeckyDiskDoctor)
+          unzip -t "out/DeckyDiskDoctor-v${VERSION}.zip"
+      - name: Create GitHub release
+        if: steps.existing.outputs.exists != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.version.outputs.version }}
+          TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          gh release create "$TAG" "out/DeckyDiskDoctor-v${VERSION}.zip" \
+            --target "$GITHUB_SHA" \
+            --title "Decky Disk Doctor $TAG" \
+            --generate-notes \
+            --prerelease
