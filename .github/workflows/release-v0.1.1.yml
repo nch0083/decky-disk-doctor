@@ -1,0 +1,34 @@
+name: Package and publish v0.1.1 prerelease
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/release-v0.1.1.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate source and package
+        run: |
+          python3 -m py_compile DeckyDiskDoctor/main.py
+          python3 -m json.tool DeckyDiskDoctor/plugin.json > /dev/null
+          python3 -m json.tool DeckyDiskDoctor/package.json > /dev/null
+          node --check DeckyDiskDoctor/dist/index.js
+          if grep -Eq '(^|[[:space:]])export[[:space:]]' DeckyDiskDoctor/dist/index.js; then
+            echo 'ES module export found in runtime plugin script'
+            exit 1
+          fi
+          zip -r Decky-Disk-Doctor-v0.1.1.zip DeckyDiskDoctor -x '*/__pycache__/*' '*.pyc'
+          unzip -t Decky-Disk-Doctor-v0.1.1.zip
+      - name: Publish test prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create v0.1.1 Decky-Disk-Doctor-v0.1.1.zip \
+            --title "Decky Disk Doctor v0.1.1" \
+            --notes "Test prerelease: removes the ESM export syntax that prevented loading. Not tested on a physical Steam Deck; additional compatibility issues may remain. No automatic deletion." \
+            --prerelease --target "${GITHUB_SHA}"
