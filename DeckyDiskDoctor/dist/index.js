@@ -24,7 +24,7 @@ function Content({api}) {
  const bad=out.results.filter(x=>!x.ok);if(bad.length)setError(bad.map(x=>`${x.name}: ${x.error}`).join('; '));
  setScan(null);setSelected({});await refreshStatus();}catch(e){setError(String(e));}finally{setBusy(false);}}
  return h(PanelSection,null,
- h(PanelSectionRow,null,text('v0.1 · Manual scan · No automatic deletion')),
+ h(PanelSectionRow,null,text('v0.1.4 · Manual scan · No automatic deletion')),
  ...(status?.partitions||[]).map((p,i)=>h(PanelSectionRow,{key:'p'+i},box(
  text(`${p.path} [mounted at ${p.mountpoint}]`,{fontWeight:'bold'}),
  text(`${bytes(p.total-p.free)} used / ${bytes(p.total)} · ${bytes(p.free)} free`)))),
@@ -52,9 +52,9 @@ function Content({api}) {
  scan&&showErrors&&h(PanelSectionRow,null,box(...(scan.errors?.length?scan.errors:['No accessible error entries']).map(x=>text(x,{fontFamily:'monospace'}))))
  );
 }
-(function(){
+export default function plugin(){
  const init=window.__DECKY_SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED_deckyLoaderAPIInit;
  if(!init)throw Error('Decky API initialization unavailable');
  const api=init.connect(1,PLUGIN);
  return {name:PLUGIN,titleView:h('div',null,'Disk Doctor'),content:h(Content,{api}),icon:h('span',null,'▣'),onDismount(){}};
-})()
+}
