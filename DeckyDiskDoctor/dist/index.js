@@ -52,9 +52,9 @@ function Content({api}) {
  scan&&showErrors&&h(PanelSectionRow,null,box(...(scan.errors?.length?scan.errors:['No accessible error entries']).map(x=>text(x,{fontFamily:'monospace'}))))
  );
 }
-export default function(){
+(function(){
  const init=window.__DECKY_SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED_deckyLoaderAPIInit;
  if(!init)throw Error('Decky API initialization unavailable');
  const api=init.connect(1,PLUGIN);
  return {name:PLUGIN,titleView:h('div',null,'Disk Doctor'),content:h(Content,{api}),icon:h('span',null,'▣'),onDismount(){}};
-}
+})()
